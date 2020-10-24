@@ -1,0 +1,69 @@
+{
+  "name": "aws-lambda-nodejs-esbuild",
+  "version": "0.0.0-development",
+  "license": "MIT",
+  "author": "Victor Korzunin <ifloydrose@gmail.com>",
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "package.json",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "prepublishOnly": "npm run build",
+    "precommit": "npm run lint",
+    "build": "npm run clean && tsc",
+    "clean": "rm -rf ./dist",
+    "pretest": "npm run lint",
+    "test": "jest --passWithNoTests",
+    "lint": "eslint .",
+    "coverage": "npm run test -- --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/floydspace/aws-lambda-nodejs-esbuild.git"
+  },
+  "bugs": {
+    "url": "https://github.com/floydspace/aws-lambda-nodejs-esbuild/issues"
+  },
+  "homepage": "https://floydspace.github.io/aws-lambda-nodejs-esbuild",
+  "keywords": [
+    "aws-cdk",
+    "esbuild",
+    "aws lambda",
+    "aws",
+    "lambda",
+    "bundler",
+    "typescript"
+  ],
+  "devDependencies": {
+    "@aws-cdk/aws-lambda": "^1.70.0",
+    "@aws-cdk/core": "^1.70.0",
+    "@commitlint/cli": "^11.0.0",
+    "@commitlint/config-conventional": "^11.0.0",
+    "@types/fs-extra": "^9.0.1",
+    "@types/jest": "^26.0.14",
+    "@types/node": "^12.12.38",
+    "@types/ramda": "^0.27.30",
+    "@typescript-eslint/eslint-plugin": "^4.5.0",
+    "@typescript-eslint/parser": "^4.5.0",
+    "eslint": "^7.12.0",
+    "husky": "^4.3.0",
+    "jest": "^26.6.1",
+    "mock-fs": "^4.12.0",
+    "semantic-release": "^17.2.1",
+    "ts-jest": "^26.4.0",
+    "typescript": "^4.0.3"
+  },
+  "dependencies": {
+    "esbuild": ">=0.6",
+    "fs-extra": "^9.0.1",
+    "globby": "^11.0.1",
+    "ramda": "^0.27.0"
+  },
+  "peerDependencies": {
+    "@aws-cdk/aws-lambda": "^1.0.0",
+    "@aws-cdk/core": "^1.0.0"
+  }
+}
