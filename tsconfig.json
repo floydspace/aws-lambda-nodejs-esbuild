@@ -1,14 +1,17 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "CommonJS",
     "target": "es6",
+    "outDir": "dist",
+    "declaration": true,
     "skipLibCheck": true,
-    "outDir": "dist"
+    "esModuleInterop": true,
+    "lib": ["ES2017"]
   },
-  "include": [
-    "src"
-  ],
   "exclude": [
     "node_modules"
+  ],
+  "include": [
+    "src"
   ]
 }
