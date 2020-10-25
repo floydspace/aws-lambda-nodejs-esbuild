@@ -1,5 +1,6 @@
 {
   "name": "aws-lambda-nodejs-esbuild",
+  "description": "λ💨 AWS CDK Construct to bundle JavaScript and TypeScript AWS lambdas using extremely fast esbuild",
   "version": "0.0.0-development",
   "license": "MIT",
   "author": "Victor Korzunin <ifloydrose@gmail.com>",
@@ -66,5 +67,8 @@
   "peerDependencies": {
     "@aws-cdk/aws-lambda": "^1.0.0",
     "@aws-cdk/core": "^1.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
