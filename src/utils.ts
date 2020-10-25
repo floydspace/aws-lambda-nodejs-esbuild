@@ -1,5 +1,37 @@
-import * as fs from 'fs';
+import * as childProcess from 'child_process';
+import * as fs from 'fs-extra';
 import * as path from 'path';
+import { join } from 'ramda';
+
+export class SpawnError extends Error {
+  constructor(message: string, public stdout: string, public stderr: string) {
+    super(message);
+  }
+
+  toString() {
+    return `${this.message}\n${this.stderr}`;
+  }
+}
+
+/**
+ * Executes a child process without limitations on stdout and stderr.
+ * On error (exit code is not 0), it rejects with a SpawnProcessError that contains the stdout and stderr streams,
+ * on success it returns the streams in an object.
+ * @param {string} command - Command
+ * @param {string[]} [args] - Arguments
+ * @param {Object} [options] - Options for child_process.spawn
+ */
+export function spawnProcess(command: string, args: string[], options: childProcess.SpawnOptionsWithoutStdio) {
+  const child = childProcess.spawnSync(command, args, options);
+  const stdout = child.stdout.toString('utf8');
+  const stderr = child.stderr.toString('utf8');
+
+  if (child.status !== 0) {
+    throw new SpawnError(`${command} ${join(' ', args)} failed with code ${child.status}`, stdout, stderr);
+  }
+
+  return { stdout, stderr };
+}
 
 /**
  * Extracts the file name from handler string.

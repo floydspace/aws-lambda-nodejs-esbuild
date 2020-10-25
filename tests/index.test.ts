@@ -1,4 +1,5 @@
 jest.mock('esbuild');
+jest.mock('../src/packExternalModules');
 
 import '@aws-cdk/assert/jest';
 

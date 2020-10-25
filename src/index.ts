@@ -2,7 +2,9 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import * as cdk from '@aws-cdk/core';
 import * as es from 'esbuild';
 import * as path from 'path';
+import { mergeRight, union, without } from 'ramda';
 
+import { packExternalModules } from './packExternalModules';
 import { extractFileName, findProjectRoot, nodeMajorVersion } from './utils';
 
 /**
@@ -38,6 +40,13 @@ export interface NodejsFunctionProps extends lambda.FunctionOptions {
   readonly runtime?: lambda.Runtime;
 
   /**
+   * The list of modules that must be excluded from bundle and from externals.
+   *
+   * @default = ['aws-sdk']
+   */
+  readonly exclude?: string[];
+
+  /**
    * The esbuild bundler specific options.
    *
    * @default = { platform: 'node' }
@@ -49,7 +58,6 @@ const BUILD_FOLDER = '.build';
 const DEFAULT_BUILD_OPTIONS: es.BuildOptions = {
   bundle: true,
   target: 'es2017',
-  external: ['aws-sdk'],
 };
 
 /**
@@ -66,6 +74,9 @@ export class NodejsFunction extends lambda.Function {
       throw new Error('Cannot find root directory. Please specify it with `rootDir` option.');
     }
 
+    const withDefaultOptions = mergeRight(DEFAULT_BUILD_OPTIONS);
+    const buildOptions = withDefaultOptions<es.BuildOptions>(props.esbuildOptions ?? {});
+    const exclude = union(props.exclude || [], ['aws-sdk']);
     const handler = props.handler ?? 'index.handler';
     const defaultRunTime = nodeMajorVersion() >= 12
       ? lambda.Runtime.NODEJS_12_X
@@ -74,12 +85,14 @@ export class NodejsFunction extends lambda.Function {
     const entry = extractFileName(projectRoot, handler);
 
     es.buildSync({
-      ...DEFAULT_BUILD_OPTIONS,
-      ...props.esbuildOptions,
+      ...buildOptions,
+      external: union(exclude, buildOptions.external || []),
       entryPoints: [entry],
       outdir: path.join(projectRoot, BUILD_FOLDER, path.dirname(entry)),
       platform: 'node',
     });
+
+    packExternalModules(without(exclude, buildOptions.external || []), path.join(projectRoot, BUILD_FOLDER));
 
     super(scope, id, {
       ...props,
