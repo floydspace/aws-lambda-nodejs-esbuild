@@ -1,1 +1,9 @@
 preset: conventionalcommits
+branches:
+  - name: master
+  - name: beta
+    prerelease: true
+    channel: false
+  - name: alpha
+    prerelease: true
+    channel: false
