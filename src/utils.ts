@@ -1,6 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+/**
+ * Extracts the file name from handler string.
+ */
 export function extractFileName(cwd: string, handler: string): string {
   const fnName = path.extname(handler);
   const fnNameLastAppearanceIndex = handler.lastIndexOf(fnName);
@@ -40,7 +43,10 @@ export function findUp(name: string, directory: string = process.cwd()): string 
   return findUp(name, path.dirname(absoluteDirectory));
 }
 
-export function findProjectRoot(rootDir: string): string {
+/**
+ * Forwards `rootDir` or finds project root folder.
+ */
+export function findProjectRoot(rootDir?: string): string | undefined {
   return rootDir
     ?? findUp(`.git${path.sep}`)
     ?? findUp('yarn.lock')

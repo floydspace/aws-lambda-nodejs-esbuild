@@ -6,6 +6,7 @@
     "declaration": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
+    "strictNullChecks": true,
     "lib": ["ES2017"]
   },
   "exclude": [
