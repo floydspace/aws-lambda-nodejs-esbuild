@@ -5,6 +5,7 @@
   "license": "MIT",
   "author": "Victor Korzunin <ifloydrose@gmail.com>",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist",
     "package.json",

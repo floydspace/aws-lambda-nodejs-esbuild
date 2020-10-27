@@ -1,0 +1,4 @@
+{
+  "app": "node stack/app.js",
+  "versionReporting": false
+}

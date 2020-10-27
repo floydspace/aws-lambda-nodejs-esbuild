@@ -1,0 +1,16 @@
+{
+  "name": "complete",
+  "version": "0.1.0",
+  "devDependencies": {
+    "@aws-cdk/aws-lambda": "^1.70.0",
+    "@aws-cdk/core": "^1.70.0",
+    "@types/node": "10.17.27",
+    "aws-cdk": "1.70.0",
+    "aws-lambda-nodejs-esbuild": "*",
+    "ts-node": "^8.1.0",
+    "typescript": "~3.9.7"
+  },
+  "dependencies": {
+    "isin-validator": "^1.1.1"
+  }
+}

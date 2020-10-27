@@ -31,9 +31,9 @@ Installation
 ------------
 
 ```sh
-yarn add --dev aws-lambda-nodejs-esbuild
+yarn add --dev @aws-cdk/aws-lambda aws-lambda-nodejs-esbuild
 # or
-npm install -D aws-lambda-nodejs-esbuild
+npm install -D @aws-cdk/aws-lambda aws-lambda-nodejs-esbuild
 ```
 
 
@@ -43,7 +43,21 @@ Configure
 By default, no configuration required, but you can change esbuild behavior:
 
 ```ts
-  TODO
+  import * as cdk from '@aws-cdk/core';
+  import { NodejsFunction } from 'aws-lambda-nodejs-esbuild';
+
+  class NewStack extends cdk.Stack {
+    constructor(scope, id, props) {
+      super(scope, id, props);
+
+      new NodejsFunction(this, 'NewFunction', {
+        esbuildOptions: {
+          minify: false, // default
+          target: 'ES2017', // default
+        }
+      });
+    }
+  }
 ```
 
 Check [esbuild](https://github.com/evanw/esbuild#command-line-usage) documentation for the full list of available options. Note that some options like `entryPoints` or `outdir` cannot be overwritten.
@@ -56,8 +70,10 @@ Usage
 The normal AWS CDK deploy procedure will automatically compile with `esbuild`:
 
 - Create the AWS CDK project with `cdk init app --language=typescript`
-- Install aws-lambda-nodejs-esbuild plugin as above
+- Install `aws-lambda-nodejs-esbuild` as above
 - Deploy with `cdk deploy`
+
+See examples: [minimal](examples/minimal/README.md) and [complete](examples/complete/README.md)
 
 
 Author

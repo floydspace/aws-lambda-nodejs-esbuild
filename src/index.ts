@@ -49,7 +49,7 @@ export interface NodejsFunctionProps extends lambda.FunctionOptions {
   /**
    * The esbuild bundler specific options.
    *
-   * @default = { platform: 'node' }
+   * @default = { bundle: true, target: 'es2017' }
    */
   readonly esbuildOptions?: es.BuildOptions;
 }
