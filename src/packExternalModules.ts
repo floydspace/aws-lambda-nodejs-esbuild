@@ -1,23 +1,6 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import {
-  compose,
-  forEach,
-  head,
-  includes,
-  is,
-  isEmpty,
-  join,
-  map,
-  mergeRight,
-  pick,
-  replace,
-  split,
-  startsWith,
-  tail,
-  toPairs,
-  uniq,
-} from 'ramda';
+import { compose, forEach, head, includes, isEmpty, join, map, mergeRight, pick, replace, tail, toPairs, uniq } from 'ramda';
 
 import * as Packagers from './packagers';
 import { JSONObject } from './types';
@@ -28,7 +11,7 @@ function rebaseFileReferences(pathToPackageRoot: string, moduleVersion: string) 
     return replace(
       /\\/g,
       '/',
-      `${startsWith('file:', moduleVersion) ? 'file:' : ''}${pathToPackageRoot}/${filePath}`
+      `${moduleVersion.startsWith('file:') ? 'file:' : ''}${pathToPackageRoot}/${filePath}`
     );
   }
 
@@ -40,9 +23,9 @@ function rebaseFileReferences(pathToPackageRoot: string, moduleVersion: string) 
  */
 function addModulesToPackageJson(externalModules: string[], packageJson: JSONObject, pathToPackageRoot: string) {
   forEach(externalModule => {
-    const splitModule = split('@', externalModule);
+    const splitModule = externalModule.split('@');
     // If we have a scoped module we have to re-add the @
-    if (startsWith('@', externalModule)) {
+    if (externalModule.startsWith('@')) {
       splitModule.splice(0, 1);
       splitModule[0] = '@' + splitModule[0];
     }
@@ -57,8 +40,7 @@ function addModulesToPackageJson(externalModules: string[], packageJson: JSONObj
 /**
  * Resolve the needed versions of production dependencies for external modules.
  */
-function getProdModules(externalModules: { external: string }[], packagePath: string, dependencyGraph: JSONObject) {
-  const packageJsonPath = path.join(process.cwd(), packagePath);
+function getProdModules(externalModules: { external: string }[], packageJsonPath: string, dependencyGraph: JSONObject) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const packageJson = require(packageJsonPath);
   const prodModules: string[] = [];
@@ -78,7 +60,7 @@ function getProdModules(externalModules: { external: string }[], packagePath: st
       // Check if the module has any peer dependencies and include them too
       try {
         const modulePackagePath = path.join(
-          path.dirname(path.join(process.cwd(), packagePath)),
+          path.dirname(packageJsonPath),
           'node_modules',
           externalModule.external,
           'package.json'
@@ -88,7 +70,7 @@ function getProdModules(externalModules: { external: string }[], packagePath: st
           console.log(`Adding explicit peers for dependency ${externalModule.external}`);
           const peerModules = getProdModules(
             compose(map(([external]) => ({ external })), toPairs)(peerDependencies),
-            packagePath,
+            packageJsonPath,
             dependencyGraph
           );
           Array.prototype.push.apply(prodModules, peerModules);
@@ -123,8 +105,7 @@ function getProdModules(externalModules: { external: string }[], packagePath: st
 }
 
 /**
- * We need a performant algorithm to install the packages for each single
- * function (in case we package individually).
+ * We need a performant algorithm to install the packages for each single function.
  * (1) We fetch ALL packages needed by ALL functions in a first step
  * and use this as a base npm checkout. The checkout will be done to a
  * separate temporary directory with a package.json that contains everything.
@@ -135,22 +116,20 @@ function getProdModules(externalModules: { external: string }[], packagePath: st
  * This will utilize the npm cache at its best and give us the needed results
  * and performance.
  */
-export function packExternalModules(externals: string[], compositeModulePath: string) {
+export function packExternalModules(externals: string[], cwd: string, compositeModulePath: string) {
   if (!externals || !externals.length) {
     return;
   }
 
-  // Read plugin configuration
-  const packagePath = './package.json';
-  const packageJsonPath = path.join(process.cwd(), packagePath);
+  // Read function package.json
+  const packageJsonPath = path.join(cwd, 'package.json');
 
   // Determine and create packager
   const packager = Packagers.get(Packagers.Installer.NPM);
 
   // Fetch needed original package.json sections
-  const sectionNames = packager.copyPackageSectionNames;
   const packageJson = fs.readJsonSync(packageJsonPath);
-  const packageSections = pick(sectionNames, packageJson);
+  const packageSections = pick(packager.copyPackageSectionNames, packageJson);
 
   // Get first level dependency graph
   console.log(`Fetch dependency graph from ${packageJsonPath}`);
@@ -158,8 +137,8 @@ export function packExternalModules(externals: string[], compositeModulePath: st
   const dependencyGraph = packager.getProdDependencies(path.dirname(packageJsonPath), 1);
 
   // (1) Generate dependency composition
-  const externalModules = map(external => ({ external }), externals);
-  const compositeModules: JSONObject = uniq(getProdModules(externalModules, packagePath, dependencyGraph));
+  const externalModules = externals.map(external => ({ external }));
+  const compositeModules: JSONObject = uniq(getProdModules(externalModules, packageJsonPath, dependencyGraph));
 
   if (isEmpty(compositeModules)) {
     // The compiled code does not reference any external modules at all
@@ -168,21 +147,20 @@ export function packExternalModules(externals: string[], compositeModulePath: st
   }
 
   // (1.a) Install all needed modules
-  const compositePackageJson = path.join(compositeModulePath, 'package.json');
+  const compositePackageJsonPath = path.join(compositeModulePath, 'package.json');
 
   // (1.a.1) Create a package.json
-  const compositePackage = mergeRight(
+  const compositePackageJson = mergeRight(
     {
       name: 'externals',
       version: '1.0.0',
-      description: `Packaged externals for ${'externals'}`,
       private: true,
     },
     packageSections
   );
   const relativePath = path.relative(compositeModulePath, path.dirname(packageJsonPath));
-  addModulesToPackageJson(compositeModules, compositePackage, relativePath);
-  fs.writeJsonSync(compositePackageJson, compositePackage);
+  addModulesToPackageJson(compositeModules, compositePackageJson, relativePath);
+  fs.writeJsonSync(compositePackageJsonPath, compositePackageJson);
 
   // (1.a.2) Copy package-lock.json if it exists, to prevent unwanted upgrades
   const packageLockPath = path.join(path.dirname(packageJsonPath), packager.lockfileName);
@@ -192,10 +170,6 @@ export function packExternalModules(externals: string[], compositeModulePath: st
     try {
       let packageLockFile = fs.readJsonSync(packageLockPath);
       packageLockFile = packager.rebaseLockfile(relativePath, packageLockFile);
-      if (is(Object)(packageLockFile)) {
-        packageLockFile = JSON.stringify(packageLockFile, null, 2);
-      }
-
       fs.writeJsonSync(path.join(compositeModulePath, packager.lockfileName), packageLockFile);
     } catch (err) {
       console.log(`Warning: Could not read lock file: ${err.message}`);

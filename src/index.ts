@@ -92,7 +92,7 @@ export class NodejsFunction extends lambda.Function {
       platform: 'node',
     });
 
-    packExternalModules(without(exclude, buildOptions.external || []), path.join(projectRoot, BUILD_FOLDER));
+    packExternalModules(without(exclude, buildOptions.external || []), projectRoot, path.join(projectRoot, BUILD_FOLDER));
 
     super(scope, id, {
       ...props,

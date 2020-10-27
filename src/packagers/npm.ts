@@ -1,4 +1,4 @@
-import { any, isEmpty, reduce, replace, split, startsWith } from 'ramda';
+import { any, isEmpty, replace, split } from 'ramda';
 
 import { JSONObject } from '../types';
 import { SpawnError, spawnProcess } from '../utils';
@@ -45,15 +45,15 @@ export class NPM implements Packager {
       if (err instanceof SpawnError) {
         // Only exit with an error if we have critical npm errors for 2nd level inside
         const errors = split('\n', err.stderr);
-        const failed = reduce((f, error) => {
+        const failed = errors.reduce((f, error) => {
           if (f) {
             return true;
           }
           return (
             !isEmpty(error) &&
-            !any(ignoredError => startsWith(`npm ERR! ${ignoredError.npmError}`, error), ignoredNpmErrors)
+            !any(ignoredError => error.startsWith(`npm ERR! ${ignoredError.npmError}`), ignoredNpmErrors)
           );
-        }, false, errors);
+        }, false);
 
         if (!failed && !isEmpty(err.stdout)) {
           return { stdout: err.stdout };

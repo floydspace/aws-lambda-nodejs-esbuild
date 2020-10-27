@@ -37,16 +37,16 @@ export class Yarn implements Packager {
     } catch (err) {
       if (err instanceof SpawnError) {
         // Only exit with an error if we have critical npm errors for 2nd level inside
-        const errors = split('\n', err.stderr);
-        const failed = reduce((f, error) => {
+        const errors = err.stderr.split('\n');
+        const failed = errors.reduce((f, error) => {
           if (f) {
             return true;
           }
           return (
             !isEmpty(error) &&
-            !any(ignoredError => startsWith(`npm ERR! ${ignoredError.npmError}`, error), ignoredYarnErrors)
+            !any(ignoredError => error.startsWith(`npm ERR! ${ignoredError.npmError}`), ignoredYarnErrors)
           );
-        }, false, errors);
+        }, false);
 
         if (!failed && !isEmpty(err.stdout)) {
           return { stdout: err.stdout };
