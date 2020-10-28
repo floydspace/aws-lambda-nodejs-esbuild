@@ -32,11 +32,15 @@
   "homepage": "https://floydspace.github.io/aws-lambda-nodejs-esbuild",
   "keywords": [
     "aws-cdk",
+    "cdk-construct",
+    "construct",
     "esbuild",
-    "aws lambda",
+    "aws-lambda",
+    "aws-lambda-node",
     "aws",
     "lambda",
     "bundler",
+    "builder",
     "typescript"
   ],
   "devDependencies": {

@@ -3,6 +3,7 @@
 
 [AWS CDK](https://aws.amazon.com/cdk/) Construct to build Node.js AWS lambdas using [esbuild](https://github.com/evanw/esbuild).
 
+![CDK Construct NodeJS](https://img.shields.io/badge/cdk--construct-node.js-blue?logo=amazon-aws&color=43853d)
 [![Build Status](https://img.shields.io/github/workflow/status/floydspace/aws-lambda-nodejs-esbuild/release)](https://github.com/floydspace/aws-lambda-nodejs-esbuild/actions)
 [![Coverage Status](https://coveralls.io/repos/github/floydspace/aws-lambda-nodejs-esbuild/badge.svg?branch=master)](https://coveralls.io/github/floydspace/aws-lambda-nodejs-esbuild?branch=master)
 [![npm version](https://badge.fury.io/js/aws-lambda-nodejs-esbuild.svg)](https://badge.fury.io/js/aws-lambda-nodejs-esbuild)
