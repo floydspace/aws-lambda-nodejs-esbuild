@@ -1,7 +1,7 @@
 λ💨 aws-lambda-nodejs-esbuild
 ==============
 
-[AWS CDK](https://aws.amazon.com/cdk/) Construct to build Node.js AWS lambdas using [esbuild](https://github.com/evanw/esbuild).
+[AWS CDK](https://aws.amazon.com/cdk/) Construct to build Node.js AWS lambdas using [esbuild](https://esbuild.github.io).
 
 ![CDK Construct NodeJS](https://img.shields.io/badge/cdk--construct-node.js-blue?logo=amazon-aws&color=43853d)
 [![Build Status](https://img.shields.io/github/workflow/status/floydspace/aws-lambda-nodejs-esbuild/release)](https://github.com/floydspace/aws-lambda-nodejs-esbuild/actions)
@@ -26,7 +26,7 @@ Features
 * Zero-config: Works out of the box without the need to install any other packages
 * Supports ESNext and TypeScript syntax with transforming limitations (See *Note*)
 
-*Note*: The default JavaScript syntax target is set to [`ES2017`](https://node.green/#ES2017), so the final bundle will be supported by all [AWS Lambda Node.js runtimes](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html). If you still using an old lambda runtime and have to respect it you can play with esbuild `target` option, see [JavaScript syntax support](https://github.com/evanw/esbuild#javascript-syntax-support) for more details about syntax transform limitations.
+*Note*: The default JavaScript syntax target is set to [`ES2017`](https://node.green/#ES2017), so the final bundle will be supported by all [AWS Lambda Node.js runtimes](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html). If you still using an old lambda runtime and have to respect it you can play with esbuild `target` option, see [JavaScript syntax support](https://esbuild.github.io/content-types/#javascript) for more details about syntax transform limitations.
 
 
 Installation
@@ -62,7 +62,7 @@ By default, no configuration required, but you can change esbuild behavior:
   }
 ```
 
-Check [esbuild](https://github.com/evanw/esbuild#command-line-usage) documentation for the full list of available options. Note that some options like `entryPoints` or `outdir` cannot be overwritten.
+Check [esbuild](https://esbuild.github.io/api/#simple-options) documentation for the full list of available options. Note that some options like `entryPoints` or `outdir` cannot be overwritten.
 The package specified in the `exclude` option is passed to esbuild as `external`, but it is not included in the function bundle either. The default value for this option is `['aws-sdk']`.
 
 
