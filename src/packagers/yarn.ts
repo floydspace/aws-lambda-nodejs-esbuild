@@ -24,6 +24,18 @@ export class Yarn implements Packager {
     return false;
   }
 
+  isManagerInstalled(cwd: string) {
+    const command = /^win/.test(process.platform) ? 'yarn.cmd' : 'yarn';
+    const args = ['--version'];
+
+    try {
+      spawnProcess(command, args, { cwd });
+      return true;
+    } catch (_e) {
+      return false;
+    }
+  }
+
   getProdDependencies(cwd, depth) {
     const command = /^win/.test(process.platform) ? 'yarn.cmd' : 'yarn';
     const args = ['list', `--depth=${depth || 1}`, '--json', '--production'];
@@ -37,7 +49,7 @@ export class Yarn implements Packager {
     } catch (err) {
       if (err instanceof SpawnError) {
         // Only exit with an error if we have critical npm errors for 2nd level inside
-        const errors = err.stderr.split('\n');
+        const errors = err.stderr?.split('\n') ?? [];
         const failed = errors.reduce((f, error) => {
           if (f) {
             return true;

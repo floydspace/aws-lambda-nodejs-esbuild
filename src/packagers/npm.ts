@@ -1,4 +1,4 @@
-import { any, isEmpty, replace, split } from 'ramda';
+import { any, isEmpty, replace } from 'ramda';
 
 import { JSONObject } from '../types';
 import { SpawnError, spawnProcess } from '../utils';
@@ -18,6 +18,18 @@ export class NPM implements Packager {
 
   get mustCopyModules() {
     return true;
+  }
+
+  isManagerInstalled(cwd: string) {
+    const command = /^win/.test(process.platform) ? 'npm.cmd' : 'npm';
+    const args = ['--version'];
+
+    try {
+      spawnProcess(command, args, { cwd });
+      return true;
+    } catch (_e) {
+      return false;
+    }
   }
 
   getProdDependencies(cwd: string, depth: number) {
@@ -44,7 +56,7 @@ export class NPM implements Packager {
     } catch (err) {
       if (err instanceof SpawnError) {
         // Only exit with an error if we have critical npm errors for 2nd level inside
-        const errors = split('\n', err.stderr);
+        const errors = err.stderr?.split('\n') ?? [];
         const failed = errors.reduce((f, error) => {
           if (f) {
             return true;
@@ -64,15 +76,6 @@ export class NPM implements Packager {
     }
   }
 
-  _rebaseFileReferences(pathToPackageRoot: string, moduleVersion: string) {
-    if (/^file:[^/]{2}/.test(moduleVersion)) {
-      const filePath = replace(/^file:/, '', moduleVersion);
-      return replace(/\\/g, '/', `file:${pathToPackageRoot}/${filePath}`);
-    }
-
-    return moduleVersion;
-  }
-
   /**
    * We should not be modifying 'package-lock.json'
    * because this file should be treated as internal to npm.
@@ -82,7 +85,7 @@ export class NPM implements Packager {
    */
   rebaseLockfile(pathToPackageRoot: string, lockfile: JSONObject) {
     if (lockfile.version) {
-      lockfile.version = this._rebaseFileReferences(pathToPackageRoot, lockfile.version);
+      lockfile.version = this.rebaseFileReferences(pathToPackageRoot, lockfile.version);
     }
 
     if (lockfile.dependencies) {
@@ -116,5 +119,14 @@ export class NPM implements Packager {
 
       spawnProcess(command, args, { cwd });
     });
+  }
+
+  private rebaseFileReferences(pathToPackageRoot: string, moduleVersion: string) {
+    if (/^file:[^/]{2}/.test(moduleVersion)) {
+      const filePath = replace(/^file:/, '', moduleVersion);
+      return replace(/\\/g, '/', `file:${pathToPackageRoot}/${filePath}`);
+    }
+
+    return moduleVersion;
   }
 }

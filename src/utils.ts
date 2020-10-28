@@ -23,8 +23,8 @@ export class SpawnError extends Error {
  */
 export function spawnProcess(command: string, args: string[], options: childProcess.SpawnOptionsWithoutStdio) {
   const child = childProcess.spawnSync(command, args, options);
-  const stdout = child.stdout.toString('utf8');
-  const stderr = child.stderr.toString('utf8');
+  const stdout = child.stdout?.toString('utf8');
+  const stderr = child.stderr?.toString('utf8');
 
   if (child.status !== 0) {
     throw new SpawnError(`${command} ${join(' ', args)} failed with code ${child.status}`, stdout, stderr);
@@ -91,4 +91,44 @@ export function findProjectRoot(rootDir?: string): string | undefined {
  */
 export function nodeMajorVersion(): number {
   return parseInt(process.versions.node.split('.')[0], 10);
+}
+
+/**
+ * Returns the package manager currently active if the program is executed
+ * through an npm or yarn script like:
+ * ```bash
+ * yarn run example
+ * npm run example
+ * ```
+ */
+export function getCurrentPackager() {
+  const userAgent = process.env.npm_config_user_agent;
+  if (!userAgent) {
+    return null;
+  }
+
+  if (userAgent.startsWith('npm')) {
+    return 'npm';
+  }
+
+  if (userAgent.startsWith('yarn')) {
+    return 'yarn';
+  }
+
+  return null;
+}
+
+/**
+ * Checks for the presence of package-lock.json or yarn.lock to determine which package manager is being used
+ */
+export function getPackagerFromLockfile(cwd: string) {
+  if (fs.existsSync(path.join(cwd, 'package-lock.json'))) {
+    return 'npm';
+  }
+
+  if (fs.existsSync(path.join(cwd, 'yarn.lock'))) {
+    return 'yarn';
+  }
+
+  return null;
 }

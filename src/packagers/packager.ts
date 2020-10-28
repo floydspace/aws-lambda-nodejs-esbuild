@@ -4,6 +4,7 @@ export interface Packager {
   lockfileName: string;
   copyPackageSectionNames: Array<string>;
   mustCopyModules: boolean;
+  isManagerInstalled(cwd: string): boolean;
   getProdDependencies(cwd: string, depth: number): JSONObject;
   rebaseLockfile(pathToPackageRoot: string, lockfile: JSONObject): void;
   install(cwd: string): void;

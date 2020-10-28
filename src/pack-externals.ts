@@ -116,7 +116,7 @@ function getProdModules(externalModules: { external: string }[], packageJsonPath
  * This will utilize the npm cache at its best and give us the needed results
  * and performance.
  */
-export function packExternalModules(externals: string[], cwd: string, compositeModulePath: string) {
+export function packExternalModules(externals: string[], cwd: string, compositeModulePath: string, pkger?: 'npm' | 'yarn') {
   if (!externals || !externals.length) {
     return;
   }
@@ -125,7 +125,7 @@ export function packExternalModules(externals: string[], cwd: string, compositeM
   const packageJsonPath = path.join(cwd, 'package.json');
 
   // Determine and create packager
-  const packager = Packagers.get(Packagers.Installer.NPM);
+  const packager = Packagers.get(cwd, pkger);
 
   // Fetch needed original package.json sections
   const packageJson = fs.readJsonSync(packageJsonPath);

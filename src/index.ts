@@ -4,7 +4,7 @@ import * as es from 'esbuild';
 import * as path from 'path';
 import { mergeRight, union, without } from 'ramda';
 
-import { packExternalModules } from './packExternalModules';
+import { packExternalModules } from './pack-externals';
 import { extractFileName, findProjectRoot, nodeMajorVersion } from './utils';
 
 /**
@@ -47,11 +47,26 @@ export interface NodejsFunctionProps extends lambda.FunctionOptions {
   readonly exclude?: string[];
 
   /**
+   * Whether to use package manager to pack external modules or explicit name of a well known packager.
+   *
+   * @default = true // Determined based on what preference is set, and whether it's currently running in a yarn/npm script
+   */
+  readonly packager?: Packager | boolean;
+
+  /**
    * The esbuild bundler specific options.
    *
    * @default = { bundle: true, target: 'es2017' }
    */
   readonly esbuildOptions?: es.BuildOptions;
+}
+
+/**
+ * Package manager to pack external modules.
+ */
+export enum Packager {
+  NPM = 'npm',
+  YARN = 'yarn',
 }
 
 const BUILD_FOLDER = '.build';
@@ -77,6 +92,7 @@ export class NodejsFunction extends lambda.Function {
     const withDefaultOptions = mergeRight(DEFAULT_BUILD_OPTIONS);
     const buildOptions = withDefaultOptions<es.BuildOptions>(props.esbuildOptions ?? {});
     const exclude = union(props.exclude || [], ['aws-sdk']);
+    const packager = props.packager ?? true;
     const handler = props.handler ?? 'index.handler';
     const defaultRunTime = nodeMajorVersion() >= 12
       ? lambda.Runtime.NODEJS_12_X
@@ -92,7 +108,14 @@ export class NodejsFunction extends lambda.Function {
       platform: 'node',
     });
 
-    packExternalModules(without(exclude, buildOptions.external || []), projectRoot, path.join(projectRoot, BUILD_FOLDER));
+    if (packager) {
+      packExternalModules(
+        without(exclude, buildOptions.external || []),
+        projectRoot,
+        path.join(projectRoot, BUILD_FOLDER),
+        packager !== true ? packager : undefined,
+      );
+    }
 
     super(scope, id, {
       ...props,
