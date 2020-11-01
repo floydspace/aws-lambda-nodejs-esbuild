@@ -1,4 +1,4 @@
-import { any, isEmpty, replace } from 'ramda';
+import { any, isEmpty } from 'ramda';
 
 import { JSONObject } from '../types';
 import { SpawnError, spawnProcess } from '../utils';
@@ -32,7 +32,7 @@ export class NPM implements Packager {
     }
   }
 
-  getProdDependencies(cwd: string, depth: number) {
+  getProdDependencies(cwd: string, depth?: number) {
     // Get first level dependency graph
     const command = /^win/.test(process.platform) ? 'npm.cmd' : 'npm';
     const args = [
@@ -48,32 +48,34 @@ export class NPM implements Packager {
       { npmError: 'peer dep missing', log: true }
     ];
 
+    let processOutput;
     try {
-      const processOutput = spawnProcess(command, args, { cwd });
-      const depJson = processOutput.stdout;
-
-      return JSON.parse(depJson);
+      processOutput = spawnProcess(command, args, { cwd });
     } catch (err) {
-      if (err instanceof SpawnError) {
-        // Only exit with an error if we have critical npm errors for 2nd level inside
-        const errors = err.stderr?.split('\n') ?? [];
-        const failed = errors.reduce((f, error) => {
-          if (f) {
-            return true;
-          }
-          return (
-            !isEmpty(error) &&
-            !any(ignoredError => error.startsWith(`npm ERR! ${ignoredError.npmError}`), ignoredNpmErrors)
-          );
-        }, false);
-
-        if (!failed && !isEmpty(err.stdout)) {
-          return { stdout: err.stdout };
-        }
+      if (!(err instanceof SpawnError)) {
+        throw err;
       }
 
-      throw err;
+      // Only exit with an error if we have critical npm errors for 2nd level inside
+      const errors = err.stderr?.split('\n') ?? [];
+      const failed = errors.reduce((f, error) => {
+        if (f) {
+          return true;
+        }
+        return (
+          !isEmpty(error) &&
+          !any(ignoredError => error.startsWith(`npm ERR! ${ignoredError.npmError}`), ignoredNpmErrors)
+        );
+      }, false);
+
+      if (failed || isEmpty(err.stdout)) {
+        throw err;
+      }
+
+      processOutput = { stdout: err.stdout };
     }
+
+    return JSON.parse(processOutput.stdout);
   }
 
   /**
@@ -90,7 +92,7 @@ export class NPM implements Packager {
 
     if (lockfile.dependencies) {
       for (const lockedDependency in lockfile.dependencies) {
-        this.rebaseLockfile(pathToPackageRoot, lockedDependency);
+        this.rebaseLockfile(pathToPackageRoot, lockfile.dependencies[lockedDependency]);
       }
     }
 
@@ -114,17 +116,13 @@ export class NPM implements Packager {
   runScripts(cwd, scriptNames) {
     const command = /^win/.test(process.platform) ? 'npm.cmd' : 'npm';
 
-    scriptNames.forEach(scriptName => {
-      const args = ['run', scriptName];
-
-      spawnProcess(command, args, { cwd });
-    });
+    scriptNames.forEach(scriptName => spawnProcess(command, ['run', scriptName], { cwd }));
   }
 
   private rebaseFileReferences(pathToPackageRoot: string, moduleVersion: string) {
     if (/^file:[^/]{2}/.test(moduleVersion)) {
-      const filePath = replace(/^file:/, '', moduleVersion);
-      return replace(/\\/g, '/', `file:${pathToPackageRoot}/${filePath}`);
+      const filePath = moduleVersion.replace(/^file:/, '');
+      return `file:${pathToPackageRoot}/${filePath}`.replace(/\\/g, '/');
     }
 
     return moduleVersion;

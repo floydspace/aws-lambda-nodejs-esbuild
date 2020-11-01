@@ -33,6 +33,18 @@ export function spawnProcess(command: string, args: string[], options: childProc
   return { stdout, stderr };
 }
 
+export function safeJsonParse(str: string) {
+  try {
+    return JSON.parse(str);
+  } catch (e) {
+    return null;
+  }
+}
+
+export function splitLines(str: string) {
+  return str.split(/\r?\n/);
+}
+
 /**
  * Extracts the file name from handler string.
  */

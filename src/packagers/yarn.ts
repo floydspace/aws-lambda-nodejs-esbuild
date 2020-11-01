@@ -1,7 +1,7 @@
-import { any, head, isEmpty, join, pathOr, reduce, replace, split, startsWith, tail } from 'ramda';
+import { any, head, isEmpty, join, pathOr, split, tail } from 'ramda';
 
 import { JSONObject } from '../types';
-import { SpawnError, spawnProcess } from '../utils';
+import { safeJsonParse, SpawnError, spawnProcess, splitLines } from '../utils';
 import { Packager } from './packager';
 
 /**
@@ -36,7 +36,7 @@ export class Yarn implements Packager {
     }
   }
 
-  getProdDependencies(cwd, depth) {
+  getProdDependencies(cwd: string, depth?: number) {
     const command = /^win/.test(process.platform) ? 'yarn.cmd' : 'yarn';
     const args = ['list', `--depth=${depth || 1}`, '--json', '--production'];
 
@@ -47,33 +47,36 @@ export class Yarn implements Packager {
     try {
       processOutput = spawnProcess(command, args, { cwd });
     } catch (err) {
-      if (err instanceof SpawnError) {
-        // Only exit with an error if we have critical npm errors for 2nd level inside
-        const errors = err.stderr?.split('\n') ?? [];
-        const failed = errors.reduce((f, error) => {
-          if (f) {
-            return true;
-          }
-          return (
-            !isEmpty(error) &&
-            !any(ignoredError => error.startsWith(`npm ERR! ${ignoredError.npmError}`), ignoredYarnErrors)
-          );
-        }, false);
-
-        if (!failed && !isEmpty(err.stdout)) {
-          return { stdout: err.stdout };
-        }
+      if (!(err instanceof SpawnError)) {
+        throw err;
       }
 
-      throw err;
+      // Only exit with an error if we have critical npm errors for 2nd level inside
+      const errors = err.stderr?.split('\n') ?? [];
+      const failed = errors.reduce((f, error) => {
+        if (f) {
+          return true;
+        }
+        return (
+          !isEmpty(error) &&
+          !any(ignoredError => error.startsWith(`npm ERR! ${ignoredError.npmError}`), ignoredYarnErrors)
+        );
+      }, false);
+
+      if (failed || isEmpty(err.stdout)) {
+        throw err;
+      }
+
+      processOutput = { stdout: err.stdout };
     }
 
-    const depJson = processOutput.stdout;
-    const parsedTree = JSON.parse(depJson);
-    const convertTrees = reduce((__, tree: JSONObject) => {
+    const lines = splitLines(processOutput.stdout);
+    const parsedLines = lines.map(safeJsonParse);
+    const parsedTree = parsedLines.find(line => line && line.type === 'tree');
+    const convertTrees = ts => ts.reduce((__, tree: JSONObject) => {
       const splitModule = split('@', tree.name);
       // If we have a scoped module we have to re-add the @
-      if (startsWith('@', tree.name)) {
+      if (tree.name.startsWith('@')) {
         splitModule.splice(0, 1);
         splitModule[0] = '@' + splitModule[0];
       }
@@ -101,28 +104,34 @@ export class Yarn implements Packager {
     while ((match = fileVersionMatcher.exec(lockfile)) !== null) {
       replacements.push({
         oldRef: match[1],
-        newRef: replace(/\\/g, '/', `${pathToPackageRoot}/${match[1]}`)
+        newRef: `${pathToPackageRoot}/${match[1]}`.replace(/\\/g, '/')
       });
     }
 
     // Replace all lines in lockfile
-    return reduce((__, replacement) => replace(__, replacement.oldRef, replacement.newRef), lockfile, replacements);
+    return replacements.reduce((__, replacement) => __.replace(replacement.oldRef, replacement.newRef), lockfile);
   }
 
-  install(cwd) {
+  install(cwd: string, packagerOptions?) {
     const command = /^win/.test(process.platform) ? 'yarn.cmd' : 'yarn';
-    const args = ['install', '--frozen-lockfile', '--non-interactive'];
+    const args = [ 'install', '--frozen-lockfile', '--non-interactive' ];
+
+    // Convert supported packagerOptions
+    if (packagerOptions.ignoreScripts) {
+      args.push('--ignore-scripts');
+    }
 
     spawnProcess(command, args, { cwd });
   }
 
   // "Yarn install" prunes automatically
-  prune(cwd) {
-    return this.install(cwd);
+  prune(cwd: string, packagerOptions?) {
+    return this.install(cwd, packagerOptions);
   }
 
   runScripts(cwd, scriptNames: string[]) {
     const command = /^win/.test(process.platform) ? 'yarn.cmd' : 'yarn';
+
     scriptNames.forEach(scriptName => spawnProcess(command, ['run', scriptName], { cwd }));
   }
 }

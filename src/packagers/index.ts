@@ -35,7 +35,7 @@ export function get(cwd: string, packagerId?: keyof typeof registeredPackagers):
   const pkger = findPackager(cwd, packagerId);
 
   if (!(pkger in registeredPackagers)) {
-    const message = `Could not find packager '${packagerId}'`;
+    const message = `Could not find packager '${pkger}'`;
     console.log(`ERROR: ${message}`);
     throw new Error(message);
   }

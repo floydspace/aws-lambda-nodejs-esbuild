@@ -1,6 +1,6 @@
 import validateIsin from 'isin-validator';
 
-export function handler(event: any) {
+export function handler(event: string) {
   const isInvalid = validateIsin(event);
 
   return {
