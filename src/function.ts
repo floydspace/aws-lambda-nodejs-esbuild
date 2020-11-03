@@ -6,12 +6,12 @@ import { mergeRight, union, without } from 'ramda';
 
 import { packExternalModules } from './pack-externals';
 import { NodejsFunctionProps } from './props';
-import { extractFileName, findProjectRoot, nodeMajorVersion } from './utils';
+import { extractFileName, findProjectRoot, NodeMajorESMap, nodeMajorVersion } from './utils';
 
 const BUILD_FOLDER = '.build';
 const DEFAULT_BUILD_OPTIONS: es.BuildOptions = {
   bundle: true,
-  target: 'es2017',
+  target: NodeMajorESMap[nodeMajorVersion()],
 };
 
 /**
@@ -33,10 +33,10 @@ export class NodejsFunction extends lambda.Function {
     const exclude = union(props.exclude || [], ['aws-sdk']);
     const packager = props.packager ?? true;
     const handler = props.handler ?? 'index.handler';
-    const defaultRunTime = nodeMajorVersion() >= 12
+    const defaultRuntime = nodeMajorVersion() >= 12
       ? lambda.Runtime.NODEJS_12_X
       : lambda.Runtime.NODEJS_10_X;
-    const runtime = props.runtime ?? defaultRunTime;
+    const runtime = props.runtime ?? defaultRuntime;
     const entry = extractFileName(projectRoot, handler);
 
     es.buildSync({

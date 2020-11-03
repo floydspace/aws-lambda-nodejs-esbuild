@@ -50,7 +50,17 @@ export interface NodejsFunctionProps extends lambda.FunctionOptions {
   /**
    * The esbuild bundler specific options.
    *
-   * @default = { bundle: true, target: 'es2017' }
+   * @default = NodeMajorESMap {
+   *   8 : 'es2016'
+   *   9 : 'es2017'
+   *   10: 'es2018'
+   *   11: 'es2018'
+   *   12: 'es2019'
+   *   13: 'es2019'
+   *   14: 'es2020'
+   *   15: 'es2020'
+   * >=16: 'esnext'
+   * };
    */
   readonly esbuildOptions?: BuildOptions;
 }
