@@ -55,7 +55,7 @@ By default, no configuration required, but you can change esbuild behavior:
       new NodejsFunction(this, 'NewFunction', {
         esbuildOptions: {
           minify: false, // default
-          target: 'ES2017', // default
+          target: 'ES2017',
         }
       });
     }
