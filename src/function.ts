@@ -42,7 +42,7 @@ export class NodejsFunction extends lambda.Function {
     es.buildSync({
       ...buildOptions,
       external: union(exclude, buildOptions.external || []),
-      entryPoints: [entry],
+      entryPoints: [path.join(projectRoot, entry)],
       outdir: path.join(projectRoot, BUILD_FOLDER, path.dirname(entry)),
       platform: 'node',
     });

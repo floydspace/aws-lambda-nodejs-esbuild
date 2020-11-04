@@ -7,7 +7,7 @@ import { Runtime, RuntimeFamily } from '@aws-cdk/aws-lambda';
 import { Stack } from '@aws-cdk/core';
 import { buildSync } from 'esbuild';
 import mockfs from 'mock-fs';
-import path from 'path';
+import path, { join } from 'path';
 
 import { NodejsFunction } from '../src';
 
@@ -56,7 +56,7 @@ describe('NodejsFunction tests', () => {
       ${'a/b/c.h'}              | ${'a/b/c.ts'}
     `('Should be valid entry with default rootDir', ({ handler, entry }) => {
       new NodejsFunction(new Stack(), 'lambda-function', { handler });
-      expect(buildSync).toHaveBeenCalledWith(expect.objectContaining({ entryPoints: [entry] }));
+      expect(buildSync).toHaveBeenCalledWith(expect.objectContaining({ entryPoints: [join(process.cwd(), entry)] }));
     });
 
     it('Should be valid outdir with custom rootDir', () => {
