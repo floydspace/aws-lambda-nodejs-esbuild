@@ -7,9 +7,10 @@ import { Runtime, RuntimeFamily } from '@aws-cdk/aws-lambda';
 import { Stack } from '@aws-cdk/core';
 import { buildSync } from 'esbuild';
 import mockfs from 'mock-fs';
-import path from 'path';
+import path, { join } from 'path';
 
 import { NodejsFunction } from '../src';
+import { findProjectRoot } from '../src/utils';
 
 
 describe('NodejsFunction tests', () => {
@@ -50,10 +51,10 @@ describe('NodejsFunction tests', () => {
 
     it.each`
       handler                   | entry
-      ${null}                   | ${'index.ts'}
-      ${'source/index.handler'} | ${'source/index.ts'}
-      ${'main.func'}            | ${'main.ts'}
-      ${'a/b/c.h'}              | ${'a/b/c.ts'}
+      ${null}                   | ${join(findProjectRoot() ?? '', 'index.ts')}
+      ${'source/index.handler'} | ${join(findProjectRoot() ?? '', 'source/index.ts')}
+      ${'main.func'}            | ${join(findProjectRoot() ?? '', 'main.ts')}
+      ${'a/b/c.h'}              | ${join(findProjectRoot() ?? '', 'a/b/c.ts')}
     `('Should be valid entry with default rootDir', ({ handler, entry }) => {
       new NodejsFunction(new Stack(), 'lambda-function', { handler });
       expect(buildSync).toHaveBeenCalledWith(expect.objectContaining({ entryPoints: [entry] }));
