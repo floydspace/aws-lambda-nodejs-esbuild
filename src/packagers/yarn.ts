@@ -117,7 +117,7 @@ export class Yarn implements Packager {
     const args = [ 'install', '--frozen-lockfile', '--non-interactive' ];
 
     // Convert supported packagerOptions
-    if (packagerOptions.ignoreScripts) {
+    if (packagerOptions?.ignoreScripts) {
       args.push('--ignore-scripts');
     }
 
