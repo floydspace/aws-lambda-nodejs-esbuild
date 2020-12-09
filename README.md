@@ -9,6 +9,7 @@
 [![npm version](https://badge.fury.io/js/aws-lambda-nodejs-esbuild.svg)](https://badge.fury.io/js/aws-lambda-nodejs-esbuild)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Mentioned in Awesome CDK](https://awesome.re/mentioned-badge.svg)](https://github.com/kolomied/awesome-cdk)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ffloydspace%2Faws-lambda-nodejs-esbuild.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Ffloydspace%2Faws-lambda-nodejs-esbuild?ref=badge_shield)
 
 
 Table of Contents
@@ -82,3 +83,7 @@ Author
 ------
 
 [Victor Korzunin](https://floydspace.github.io/)
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ffloydspace%2Faws-lambda-nodejs-esbuild.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Ffloydspace%2Faws-lambda-nodejs-esbuild?ref=badge_large)
