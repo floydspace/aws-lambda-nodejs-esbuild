@@ -92,10 +92,10 @@ export function findUp(name: string, directory: string = process.cwd()): string 
  */
 export function findProjectRoot(rootDir?: string): string | undefined {
   return rootDir
-    ?? findUp(`.git${path.sep}`)
     ?? findUp('yarn.lock')
     ?? findUp('package-lock.json')
-    ?? findUp('package.json');
+    ?? findUp('package.json')
+    ?? findUp(`.git${path.sep}`);
 }
 
 /**
