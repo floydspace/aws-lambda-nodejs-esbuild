@@ -40,7 +40,7 @@ function addModulesToPackageJson(externalModules: string[], packageJson: JSONObj
 /**
  * Resolve the needed versions of production dependencies for external modules.
  */
-function getProdModules(externalModules: { external: string }[], packageJsonPath: string, dependencyGraph: JSONObject) {
+function getProdModules(externalModules: { external: string }[], packageJsonPath: string) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const packageJson = require(packageJsonPath);
   const prodModules: string[] = [];
@@ -67,11 +67,9 @@ function getProdModules(externalModules: { external: string }[], packageJsonPath
         );
         const peerDependencies = require(modulePackagePath).peerDependencies as Record<string, string>;
         if (!isEmpty(peerDependencies)) {
-          console.log(`Adding explicit peers for dependency ${externalModule.external}`);
           const peerModules = getProdModules(
             compose(map(([external]) => ({ external })), toPairs)(peerDependencies),
-            packageJsonPath,
-            dependencyGraph
+            packageJsonPath
           );
           Array.prototype.push.apply(prodModules, peerModules);
         }
@@ -88,15 +86,8 @@ function getProdModules(externalModules: { external: string }[], packageJsonPath
 
         if (!includes(externalModule.external, ignoredDevDependencies)) {
           // Runtime dependency found in devDependencies but not forcefully excluded
-          console.log(
-            `ERROR: Runtime dependency '${externalModule.external}' found in devDependencies.`
-          );
           throw new Error(`dependency error: ${externalModule.external}.`);
         }
-
-        console.log(
-          `INFO: Runtime dependency '${externalModule.external}' found in devDependencies. It has been excluded automatically.`
-        );
       }
     }
   }, externalModules);
@@ -131,18 +122,12 @@ export function packExternalModules(externals: string[], cwd: string, compositeM
   const packageJson = fs.readJsonSync(packageJsonPath);
   const packageSections = pick(packager.copyPackageSectionNames, packageJson);
 
-  // Get first level dependency graph
-  console.log(`Fetch dependency graph from ${packageJsonPath}`);
-
-  const dependencyGraph = packager.getProdDependencies(path.dirname(packageJsonPath), 1);
-
   // (1) Generate dependency composition
   const externalModules = externals.map(external => ({ external }));
-  const compositeModules: JSONObject = uniq(getProdModules(externalModules, packageJsonPath, dependencyGraph));
+  const compositeModules: JSONObject = uniq(getProdModules(externalModules, packageJsonPath));
 
   if (isEmpty(compositeModules)) {
     // The compiled code does not reference any external modules at all
-    console.log('No external modules needed');
     return;
   }
 
@@ -166,27 +151,13 @@ export function packExternalModules(externals: string[], cwd: string, compositeM
   const packageLockPath = path.join(path.dirname(packageJsonPath), packager.lockfileName);
 
   if (fs.existsSync(packageLockPath)) {
-    console.log('Package lock found - Using locked versions');
-    try {
-      let packageLockFile = fs.readJsonSync(packageLockPath);
-      packageLockFile = packager.rebaseLockfile(relativePath, packageLockFile);
-      fs.writeJsonSync(path.join(compositeModulePath, packager.lockfileName), packageLockFile);
-    } catch (err) {
-      console.log(`Warning: Could not read lock file: ${err.message}`);
-    }
+    let packageLockFile = fs.readJsonSync(packageLockPath);
+    packageLockFile = packager.rebaseLockfile(relativePath, packageLockFile);
+    fs.writeJsonSync(path.join(compositeModulePath, packager.lockfileName), packageLockFile);
   }
-
-  const start = Date.now();
-  console.log('Packing external modules: ' + compositeModules.join(', '));
 
   packager.install(compositeModulePath);
 
-  console.log(`Package took [${Date.now() - start} ms]`);
-
   // Prune extraneous packages - removes not needed ones
-  const startPrune = Date.now();
-
   packager.prune(compositeModulePath);
-
-  console.log(`Prune: ${compositeModulePath} [${Date.now() - startPrune} ms]`);
 }
