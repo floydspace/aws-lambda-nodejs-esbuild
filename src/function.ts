@@ -30,7 +30,7 @@ export class NodejsFunction extends lambda.Function {
 
     const withDefaultOptions = mergeRight(DEFAULT_BUILD_OPTIONS);
     const buildOptions = withDefaultOptions<es.BuildOptions>(props.esbuildOptions ?? {});
-    const exclude = union(props.exclude || [], ['aws-sdk']);
+    const exclude = props.exclude ?? ['aws-sdk'];
     const packager = props.packager ?? true;
     const handler = props.handler ?? 'index.handler';
     const defaultRuntime = nodeMajorVersion() >= 12
