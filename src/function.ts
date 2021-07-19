@@ -6,12 +6,23 @@ import { mergeRight, union, without } from 'ramda';
 
 import { packExternalModules } from './pack-externals';
 import { NodejsFunctionProps } from './props';
-import { extractFileName, findProjectRoot, NodeMajorESMap, nodeMajorVersion } from './utils';
+import { extractFileName, findProjectRoot, nodeMajorVersion } from './utils';
 
 const BUILD_FOLDER = '.build';
 const DEFAULT_BUILD_OPTIONS: es.BuildOptions = {
   bundle: true,
-  target: NodeMajorESMap[nodeMajorVersion()],
+  target: `node${nodeMajorVersion()}`,
+};
+
+const NodeMajorMap = {
+  8: lambda.Runtime.NODEJS_8_10,
+  9: lambda.Runtime.NODEJS_8_10,
+  10: lambda.Runtime.NODEJS_10_X,
+  11: lambda.Runtime.NODEJS_10_X,
+  12: lambda.Runtime.NODEJS_12_X,
+  13: lambda.Runtime.NODEJS_12_X,
+  14: lambda.Runtime.NODEJS_14_X,
+  15: lambda.Runtime.NODEJS_14_X,
 };
 
 /**
@@ -33,9 +44,7 @@ export class NodejsFunction extends lambda.Function {
     const exclude = props.exclude ?? ['aws-sdk'];
     const packager = props.packager ?? true;
     const handler = props.handler ?? 'index.handler';
-    const defaultRuntime = nodeMajorVersion() >= 12
-      ? lambda.Runtime.NODEJS_12_X
-      : lambda.Runtime.NODEJS_10_X;
+    const defaultRuntime = NodeMajorMap[nodeMajorVersion()];
     const runtime = props.runtime ?? defaultRuntime;
     const entry = extractFileName(projectRoot, handler);
 
@@ -52,7 +61,7 @@ export class NodejsFunction extends lambda.Function {
         without(exclude, buildOptions.external || []),
         projectRoot,
         path.join(projectRoot, BUILD_FOLDER),
-        packager !== true ? packager : undefined,
+        packager !== true ? packager : undefined
       );
     }
 

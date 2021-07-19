@@ -44,9 +44,9 @@
     "typescript"
   ],
   "devDependencies": {
-    "@aws-cdk/assert": "^1.70.0",
-    "@aws-cdk/aws-lambda": "^1.70.0",
-    "@aws-cdk/core": "^1.70.0",
+    "@aws-cdk/assert": "^1.114.0",
+    "@aws-cdk/aws-lambda": "^1.114.0",
+    "@aws-cdk/core": "^1.114.0",
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-conventional": "^11.0.0",
     "@types/fs-extra": "^9.0.2",

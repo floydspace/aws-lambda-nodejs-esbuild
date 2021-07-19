@@ -91,11 +91,9 @@ export function findUp(name: string, directory: string = process.cwd()): string 
  * Forwards `rootDir` or finds project root folder.
  */
 export function findProjectRoot(rootDir?: string): string | undefined {
-  return rootDir
-    ?? findUp('yarn.lock')
-    ?? findUp('package-lock.json')
-    ?? findUp('package.json')
-    ?? findUp(`.git${path.sep}`);
+  return (
+    rootDir ?? findUp('yarn.lock') ?? findUp('package-lock.json') ?? findUp('package.json') ?? findUp(`.git${path.sep}`)
+  );
 }
 
 /**
@@ -104,18 +102,6 @@ export function findProjectRoot(rootDir?: string): string | undefined {
 export function nodeMajorVersion(): number {
   return parseInt(process.versions.node.split('.')[0], 10);
 }
-
-export const NodeMajorESMap = {
-  8: 'es2016',
-  9: 'es2017',
-  10: 'es2018',
-  11: 'es2018',
-  12: 'es2019',
-  13: 'es2019',
-  14: 'es2020',
-  15: 'es2020',
-  16: 'esnext',
-};
 
 /**
  * Returns the package manager currently active if the program is executed
